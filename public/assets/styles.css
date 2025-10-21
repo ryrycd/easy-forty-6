@@ -42,3 +42,20 @@ ul.clean li{margin:6px 0}
 .admin-table td:nth-child(4){width:140px}
 .admin-table td:nth-child(5){width:150px}
 .admin-table td:nth-child(9), .admin-table td:nth-child(10){white-space:nowrap}
+
+
+/* Error visibility control */
+.error{display:none}
+.error.show{display:flex}
+
+
+/* Admin table alignment */
+table{table-layout:fixed}
+th:nth-child(1){width:28px}
+th:nth-child(2){width:40px}
+th:nth-child(4){width:130px}
+th:nth-child(5){width:140px}
+th:nth-child(7), th:nth-child(8){width:110px}
+th:nth-child(9){width:100px}
+td .input{width:100%}
+.handle{cursor:grab;opacity:.7}

@@ -182,3 +182,9 @@
 
   const saved = localStorage.getItem('ak'); if(saved){ document.getElementById('adminkey').value = saved; load(); }
 })();
+
+/* Save key on blur and auto-load */
+document.getElementById('adminkey').addEventListener('blur', ()=>{
+  const k = (document.getElementById('adminkey').value||'').trim();
+  if(k){ localStorage.setItem('ak', k); }
+});
