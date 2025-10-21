@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Easy Forty — Admin Console</title>
   <link rel="stylesheet" href="/assets/styles.css">
-  <script defer src="/public/admin/admin.js"></script>
+  <script defer src="/admin/admin.js"></script>
 </head>
 <body>
   <main id="app" style="width:100%">
@@ -32,7 +32,7 @@
       <hr/>
       <div class="notice">Totals: <span id="totUsed">0</span> used • <span id="totWeekly">0</span> weekly target</div>
       <div style="overflow:auto;margin-top:10px">
-        <table style="width:100%;border-collapse:separate;border-spacing:0 10px">
+        <table class="admin-table" style="width:100%;border-collapse:separate;border-spacing:0 10px">
           <thead>
           <tr>
             <th></th><th>#</th><th>URL</th><th>Weekly Target</th><th>Valid Until</th><th>Note</th><th>Assigned</th><th>Completed</th><th>Active</th><th>Delete</th>
