@@ -31,9 +31,9 @@
     return wrap;
   };
 
-  const Err = (id='err') => el('div',{id,className:'error',hidden:true});
-  const showErr = (node,msg)=>{ node.textContent = msg; node.hidden=false; node.scrollIntoView({behavior:'smooth',block:'center'}); };
-  const clearErr = (node)=>{ node.textContent=''; node.hidden=true; };
+  const Err = (id='err') => el('div',{id,className:'error'});
+  const showErr = (node,msg)=>{ node.textContent = msg; node.classList.add('show'); node.scrollIntoView({behavior:'smooth',block:'center'}); };
+  const clearErr = (node)=>{ node.textContent=''; node.classList.remove('show'); };
 
   const render = () => {
     $app.innerHTML='';
@@ -75,7 +75,7 @@
         Seg([
           {label:'Yes, I agree', value:'yes'},
           {label:'No', value:'no'}
-        ], state.consent?'yes':'', (v)=>{ state.consent = (v==='yes'); render(); }),
+        ], state.consent?'yes':'', (v)=>{ state.consent = (v==='yes'); if(state.consent){ state.step=3; } render(); }),
         err,
         el('div',{className:'row'},
           el('button',{className:'btn secondary',onclick:()=>{state.step=1;render();}}, 'Back'),
@@ -95,7 +95,7 @@
           {label:'No', value:'no'},
           {label:'Not sure', value:'unsure'},
           {label:'Yes', value:'yes'}
-        ], state.status, (v)=>{ state.status = v; render(); }),
+        ], state.status, (v)=>{ state.status = v; if(v==='no' || v==='unsure'){ state.step=4; } render(); }),
         el('div',{className:'helper'},
           state.status==='yes' ? 'Thanks! This offer is for new users only.' :
           state.status==='unsure' ? 'Eligibility depends on being truly new to Acorns.' : ''
