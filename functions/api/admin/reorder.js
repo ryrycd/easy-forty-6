@@ -1,12 +1,15 @@
 import { json } from '../../../lib/validation.js';
 import { requireAdmin } from './_common.js';
-import { setSetting } from '../../../lib/store.js';
 
 export async function onRequestPost({ request, env }){
   try{
     requireAdmin(request, env);
-    await env.DB.prepare('UPDATE links SET assigned_count=0, completed_count=0').run();
-    await setSetting(env.DB,'last_reset', new Date().toISOString());
+    const b = await request.json();
+    const ids = Array.isArray(b.ids) ? b.ids : [];
+    let pos=1;
+    for (const id of ids){
+      await env.DB.prepare('UPDATE links SET position=? WHERE id=?').bind(pos++, Number(id)).run();
+    }
     return json({ ok:true });
   }catch(e){ return json({ error:e.message }, 401); }
 }

@@ -1,0 +1,1 @@
+This v2 build redesigns the landing page and upgrades the admin console with drag-and-drop ordering, bulk weekly targets, valid-until dates, and fixes the add-link flow. Place /public as Pages build directory.

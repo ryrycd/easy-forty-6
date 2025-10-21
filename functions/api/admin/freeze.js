@@ -1,20 +1,14 @@
-import { json, CORS } from '../../../lib/validation.js';
+import { json } from '../../../lib/validation.js';
+import { requireAdmin } from './_common.js';
 import { getSetting, setSetting } from '../../../lib/store.js';
 
-function requireAdmin(request, env){
-  const k = request.headers.get('X-ADMIN-KEY') || '';
-  if (!k || k !== env.ADMIN_KEY) throw new Error('unauthorized');
-}
-
-export async function onRequestOptions() { return new Response(null, { status: 204, headers: CORS }); }
-
-export async function onRequestPost(context){
+export async function onRequestPost({ request, env }){
   try{
-    requireAdmin(context.request, context.env);
-    const DB = context.env.DB;
-    const cur = await getSetting(DB,'frozen','false');
+    requireAdmin(request, env);
+    const cur = await getSetting(env.DB,'frozen','false');
     const next = cur==='true'?'false':'true';
-    await setSetting(DB,'frozen',next);
+    await setSetting(env.DB,'frozen',next);
     return json({ ok:true, frozen: next });
-  }catch(e){ return json({ error: e.message }, 401); }
+  }catch(e){ return json({ error:e.message }, 401); }
 }
+export { onRequestOptions } from './_common.js';

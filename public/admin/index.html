@@ -1,35 +1,45 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Admin — Easy Forty</title>
-  <link rel="stylesheet" href="/assets/styles.css">
-  <script defer src="/admin/admin.js"></script>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Easy Forty — Admin Console</title>
+  <link rel="stylesheet" href="/assets/ui.css">
+  <link rel="stylesheet" href="/admin/console.css">
+  <script defer src="/admin/console.js"></script>
 </head>
 <body>
-  <main id="app">
-    <div class="card">
-      <h1 class="h">Admin Panel</h1>
-      <div class="p">Paste your admin key to manage links, freeze signups, and export.</div>
-      <label>Admin Key<input id="adminkey" class="input" placeholder="Paste ADMIN_KEY"></label>
-      <div class="row">
-        <button id="save" class="btn">Save</button>
-        <button id="freeze" class="btn secondary">Toggle Freeze</button>
-        <button id="export" class="btn secondary">Export CSV</button>
-        <button id="reset" class="btn secondary">Reset Counts</button>
+  <main class="shell">
+    <section class="card step">
+      <div class="header"><div class="logo"></div><h1 class="h1">Admin Console</h1></div>
+      <p class="sub">Drag to reorder links, set weekly targets, freeze signups, and export data.</p>
+      <div class="group">
+        <div class="row">
+          <label style="flex:1">Admin Key<span class="cap">Paste your ADMIN_KEY</span>
+            <input id="adminkey" class="input" type="password" autocomplete="off">
+          </label>
+          <button id="saveKey" class="btn ghost">Save</button>
+          <button id="reload" class="btn ghost">Reload</button>
+          <button id="exportCSV" class="btn ghost">Export CSV</button>
+          <button id="freeze" class="btn ghost">Toggle Freeze</button>
+        </div>
+        <div class="row">
+          <button id="addRow" class="btn ghost">+ Add link</button>
+          <button id="bulkWeekly" class="btn ghost">Bulk set weekly target</button>
+          <button id="applyOrder" class="btn primary">Apply order</button>
+          <button id="resetCounts" class="btn ghost">Reset counts</button>
+        </div>
+        <div class="row" id="totals"></div>
+        <div id="tableWrap" class="tablewrap">
+          <table class="table">
+            <thead><tr>
+              <th></th><th>#</th><th>Referral URL</th><th>Weekly Target</th><th>Cap</th><th>Valid Until</th><th>Note</th><th>Assigned</th><th>Completed</th><th>Active</th><th>Delete</th>
+            </tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+        <div id="toast" class="toast"></div>
       </div>
-      <hr>
-      <h3 class="h">Links</h3>
-      <div id="links"></div>
-      <div class="row">
-        <input id="newurl" class="input" placeholder="Referral URL">
-        <input id="newcap" class="input" placeholder="Cap (uses)" type="number" min="1" value="50">
-        <button id="add" class="btn">Add Link</button>
-      </div>
-      <div id="msg" class="success"></div>
-      <div id="err" class="error"></div>
-    </div>
+    </section>
   </main>
 </body>
 </html>

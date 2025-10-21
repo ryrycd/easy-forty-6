@@ -1,18 +1,16 @@
-import { json, CORS } from '../../../lib/validation.js';
+import { json } from '../../../lib/validation.js';
+import { requireAdmin } from './_common.js';
 
-function requireAdmin(request, env){
-  const k = request.headers.get('X-ADMIN-KEY') || '';
-  if (!k || k !== env.ADMIN_KEY) throw new Error('unauthorized');
-}
-
-export async function onRequestOptions() { return new Response(null, { status: 204, headers: CORS }); }
-
-export async function onRequestPost(context){
+export async function onRequestPost({ request, env }){
   try{
-    requireAdmin(context.request, context.env);
-    const body = await context.request.json();
-    const cap = Math.max(1, Number(body.cap||50));
-    await context.env.DB.prepare('INSERT INTO links(url,cap,position) VALUES (?,?, (SELECT COALESCE(MAX(position),0)+1 FROM links))').bind(body.url, cap).run();
+    requireAdmin(request, env);
+    const b = await request.json().catch(()=>({}));
+    const url = String(b.url||'');
+    const cap = Math.max(1, Number(b.cap||50));
+    const weekly = Math.max(0, Number(b.weekly_target||0));
+    await env.DB.prepare('INSERT INTO links(url,cap,weekly_target,position,active) VALUES (?,?,?,?,1)')
+      .bind(url, cap, weekly, (await env.DB.prepare('SELECT COALESCE(MAX(position),0)+1 AS p FROM links').first()).p).run();
     return json({ ok:true });
-  }catch(e){ return json({ error: e.message }, 401); }
+  }catch(e){ return json({ error:e.message }, 401); }
 }
+export { onRequestOptions } from './_common.js';

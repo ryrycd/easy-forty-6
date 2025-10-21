@@ -1,12 +1,12 @@
 import { json } from '../../../lib/validation.js';
 import { requireAdmin } from './_common.js';
-import { setSetting } from '../../../lib/store.js';
 
 export async function onRequestPost({ request, env }){
   try{
     requireAdmin(request, env);
-    await env.DB.prepare('UPDATE links SET assigned_count=0, completed_count=0').run();
-    await setSetting(env.DB,'last_reset', new Date().toISOString());
+    const b = await request.json();
+    const n = Math.max(0, Number(b.weekly_target||0));
+    await env.DB.prepare('UPDATE links SET weekly_target=?').bind(n).run();
     return json({ ok:true });
   }catch(e){ return json({ error:e.message }, 401); }
 }
