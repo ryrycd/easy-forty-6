@@ -1,134 +1,198 @@
-(()=>{
-  const el=(t,p={},...k)=>{const e=document.createElement(t);Object.assign(e,p);k.flat().forEach(x=>e.append(x?.nodeType?x:document.createTextNode(x)));return e;}
-  const $ = s=>document.querySelector(s);
-  const form = $("#form");
-  const toast = (t)=>{let n=$(".toast"); if(!n){n=el('div',{className:'toast'}); document.body.append(n)} n.textContent=t; n.classList.add('show'); setTimeout(()=>n.classList.remove('show'),2200);};
-  const E164 = s=>{const d=(s||'').replace(/\D/g,''); if(d.length===10) return '+1'+d; if(d.length>10 && s.startsWith('+')) return s; if(d.length===11&&d[0]==='1') return '+'+d; return null;}
-  const mask=(s)=>{const d=(s||'').replace(/\D/g,''); if(!d) return ''; if(d.length<=3) return `(${d}`; if(d.length<=6) return `(${d.slice(0,3)}) ${d.slice(3)}`; return `(${d.slice(0,3)}) ${d.slice(3,6)}-${d.slice(6,10)}`;};
+(() => {
+  const el = (t, props={}, ...kids) => {
+    const e = document.createElement(t);
+    Object.assign(e, props);
+    kids.flat().forEach(k => e.append(k?.nodeType ? k : document.createTextNode(k)));
+    return e;
+  };
+  const $app = document.getElementById('app');
 
-  const state={ step:1, phone:'', consent:false, status:'', payout:'', handle:'', zelleSame:'yes', zelleAlt:'', hp:'' };
+  const state = {
+    step: 1, phone: '', consent: false,
+    status: '', payout: '', handle: '', zelleSame: 'yes', zelleAlt: ''
+  };
+  const steps = 5;
+  const bar = () => ((state.step-1)/(steps-1)*100)|0;
 
-  const progress = ()=> ((state.step-1)/4*100)|0;
-  const setProgress = ()=> { const p=$('.progress>div'); if(p) p.style.width=progress()+'%'; };
-
-  const Step1=()=>{
-    const ph = el('input',{className:'input',placeholder:'(555) 555‑5555',value:state.phone,inputMode:'tel',type:'tel',autocomplete:'tel',oninput:e=>{ e.target.value=mask(e.target.value); state.phone=e.target.value; msg.textContent=''; ph.classList.remove('err'); }});
-    const msg = el('div',{className:'errmsg'});
-    return el('div',{className:'step group'},
-      el('div',{className:'header'}, el('div',{className:'logo'}), el('h1',{className:'h1'},'Easy Forty — $40 for new Acorns users')),
-      el('p',{className:'sub'},'We text you a unique link, you complete a $5 deposit, send a screenshot, and we pay you via Venmo or Zelle.'),
-      el('div',{className:'progress'}, el('div')),
-      el('span',{className:'badge'},'Step 1 of 4'),
-      el('label',{}, 'Your mobile number', el('span',{className:'cap'},'US numbers only.')), ph, msg,
-      el('div',{className:'row'},
-        el('button',{className:'btn ghost',onclick:()=>{window.location.href='/faq.html'}},'FAQ'),
-        el('button',{className:'btn primary',onclick:()=>{
-          const e164=E164(state.phone);
-          if(!e164){ msg.textContent='Enter a valid US mobile number.'; ph.classList.add('err'); return; }
-          state.step=2; render();
-        }},'Continue')
-      )
-    );
+  const e164 = (s)=>{
+    const d = String(s||'').replace(/\D/g,'');
+    if (d.length===10) return '+1'+d;
+    if (d.length===11 && d.startsWith('1')) return '+'+d;
+    if (/^\+\d{10,15}$/.test(s||'')) return s;
+    return null;
   };
 
-  const Step2=()=>{
-    const msg = el('div',{className:'errmsg'});
-    const seg = el('div',{className:'seg'},
-      el('button',{className: state.consent?'active':'', onclick:()=>{state.consent=true; [...seg.children].forEach((b,i)=>b.classList.toggle('active',i===0)); msg.textContent='';}},'Yes, you can text me'),
-      el('button',{className: !state.consent?'active':'', onclick:()=>{state.consent=false; [...seg.children].forEach((b,i)=>b.classList.toggle('active',i===1));}},'No')
-    );
-    return el('div',{className:'step group'},
-      el('div',{className:'header'}, el('div',{className:'logo'}), el('h1',{className:'h1'},'Can we text you instructions?')),
-      el('p',{className:'sub'},'You’ll receive a few messages to guide you. Reply STOP to opt out, HELP for help.'),
-      el('div',{className:'progress'}, el('div')),
-      el('span',{className:'badge'},'Step 2 of 4'),
-      seg, msg,
-      el('small',{},'By continuing you agree to receive SMS related to this referral. Msg&data rates may apply. Recurring msgs.'),
-      el('div',{className:'row'},
-        el('button',{className:'btn ghost',onclick:()=>{state.step=1; render();}},'Back'),
-        el('button',{className:'btn primary',onclick:()=>{
-          if(!state.consent){ msg.textContent='You need to consent to receive SMS to continue.'; return; }
-          state.step=3; render();
-        }},'Continue')
-      )
-    );
+  const Seg = (opts, value, onPick) => {
+    const wrap = el('div',{className:'segment fade-enter'});
+    opts.forEach(o=> {
+      const b = el('button',{className: (value===o.value?'active':''), onclick:()=>{ onPick(o.value) }} , o.label);
+      wrap.append(b);
+    });
+    return wrap;
   };
 
-  const Step3=()=>{
-    const makeBtn=(v,txt)=> el('button',{className:'btn '+(state.status===v?'primary':'ghost'),onclick:()=>{state.status=v; render();}},txt);
-    const msg = el('div',{className:'errmsg'});
-    return el('div',{className:'step group'},
-      el('div',{className:'header'}, el('div',{className:'logo'}), el('h1',{className:'h1'},'Have you ever created an Acorns account?')),
-      el('p',{className:'sub'},'Eligibility requires being a new Acorns user.'),
-      el('div',{className:'progress'}, el('div')),
-      el('span',{className:'badge'},'Step 3 of 4'),
-      el('div',{className:'row'}, makeBtn('no','No'), makeBtn('unsure','Not sure'), makeBtn('yes','Yes')),
-      state.status==='yes' ? el('div',{className:'hint'},'Thanks! This offer is for new users only—you can still share the link.') : null,
-      msg,
-      el('div',{className:'row'},
-        el('button',{className:'btn ghost',onclick:()=>{state.step=2;render();}},'Back'),
-        el('button',{className:'btn primary',onclick:()=>{
-          if(!state.status){ msg.textContent='Please choose an option.'; return; }
-          if(state.status==='yes'){ msg.textContent='This offer is for new users only.'; return; }
-          state.step=4; render();
-        }},'Continue')
-      )
-    );
-  };
+  const Err = (id='err') => el('div',{id,className:'error',hidden:true});
+  const showErr = (node,msg)=>{ node.textContent = msg; node.hidden=false; node.scrollIntoView({behavior:'smooth',block:'center'}); };
+  const clearErr = (node)=>{ node.textContent=''; node.hidden=true; };
 
-  const Step4=()=>{
-    const msg = el('div',{className:'errmsg'});
-    const setP = (p)=>{state.payout=p; render();}
-    const seg = el('div',{className:'seg'},
-      el('button',{className: state.payout==='venmo'?'active':'', onclick:()=>setP('venmo')},'Venmo'),
-      el('button',{className: state.payout==='zelle'?'active':'', onclick:()=>setP('zelle')},'Zelle')
+  const render = () => {
+    $app.innerHTML='';
+    const card = el('div',{className:'card'});
+    card.append(
+      el('div',{className:'badge'}, `Step ${state.step} of ${steps}`),
+      el('h1',{className:'h'}, 'Easy Forty — $40 for new Acorns users'),
+      el('p',{className:'p'}, 'Answer a few quick questions. We’ll text your unique link, you complete a $5 deposit, send a screenshot here, and we pay via Venmo or Zelle.'),
+      el('div',{className:'progress'}, el('div',{style:`width:${bar()}%`}))
     );
-    const ven = el('input',{className:'input',placeholder:'@yourhandle',value:state.handle,oninput:e=>{state.handle=e.target.value; msg.textContent='';}});
-    const zSame = el('div',{className:'seg'},
-      el('button',{className: state.zelleSame==='yes'?'active':'', onclick:()=>{state.zelleSame='yes'; render();}},'Zelle = my phone'),
-      el('button',{className: state.zelleSame==='no'?'active':'', onclick:()=>{state.zelleSame='no'; render();}},'Use different email/phone')
-    );
-    const zAlt = el('input',{className:'input',placeholder:'email or phone',value:state.zelleAlt,oninput:e=>{state.zelleAlt=e.target.value}});
-    return el('div',{className:'step group'},
-      el('div',{className:'header'}, el('div',{className:'logo'}), el('h1',{className:'h1'},'How should we pay you?')),
-      el('div',{className:'progress'}, el('div')),
-      el('span',{className:'badge'},'Step 4 of 4'),
-      seg,
-      state.payout==='venmo' ? el('label',{}, 'Your Venmo @handle', el('span',{className:'cap'},'Example: @janedoe'), ven) : null,
-      state.payout==='zelle' ? el('div',{}, zSame, state.zelleSame==='no'? el('label',{}, 'Zelle email/phone', zAlt): null) : null,
-      msg,
-      el('div',{className:'row'},
-        el('button',{className:'btn ghost',onclick:()=>{state.step=3; render();}},'Back'),
-        el('button',{className:'btn primary',onclick:async()=>{
-          const e164=E164(state.phone);
-          if(!e164) return toast('Phone missing or invalid.');
-          if(!state.payout) return toast('Choose Venmo or Zelle.');
-          if(state.payout==='venmo' && !/^@?\w{3,30}$/.test(state.handle||'')) return toast('Enter a valid Venmo handle.');
-          if(state.payout==='zelle' && state.zelleSame==='no' && !state.zelleAlt) return toast('Enter your Zelle email/phone.');
-          const payload={
-            phone:e164, status:state.status, payout:state.payout,
-            handle: state.payout==='venmo' ? (state.handle.startsWith('@')?state.handle:`@${state.handle}`):null,
-            zelle: state.payout==='zelle' ? (state.zelleSame==='yes'?'same':state.zelleAlt):null,
-            consent: !!state.consent, honeypot: state.hp||''
-          };
-          try{
-            const r = await fetch('/api/intake',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-            const j = await r.json().catch(()=>({}));
-            if(!r.ok) throw new Error(j.error||'Something went wrong.');
-            window.location.href='/thanks.html';
-          }catch(e){ toast(e.message); }
-        }},'Submit')
-      )
-    );
-  };
 
-  function render(){
-    form.innerHTML='';
-    form.append(
-      el('div',{className:'progress'}, el('div')),
-      [Step1,Step2,Step3,Step4][state.step-1]()
-    );
-    setProgress();
-  }
+    if (state.step === 1) {
+      const err = Err();
+      card.append(
+        el('label',{}, 'Your mobile number'),
+        el('input',{
+          className:'input', placeholder:'(555) 555‑5555',
+          type:'tel', inputMode:'numeric', autoComplete:'tel',
+          value:state.phone,
+          oninput:e=> state.phone = e.target.value
+        }),
+        el('div',{className:'helper'}, 'US numbers only at this time.'),
+        err,
+        el('div',{className:'row'},
+          el('button',{className:'btn',onclick:()=>{
+            const ok = e164(state.phone);
+            if (!ok) return showErr(err,'Enter a valid US phone number.');
+            state.step=2; render();
+          }}, 'Continue')
+        )
+      );
+    }
+
+    if (state.step === 2) {
+      const err = Err();
+      card.append(
+        el('h2',{className:'h'}, 'Can we text you about this referral?'),
+        el('p',{className:'p'}, 'We’ll send a few messages to guide you. You can reply STOP to opt out anytime.'),
+        Seg([
+          {label:'Yes, I agree', value:'yes'},
+          {label:'No', value:'no'}
+        ], state.consent?'yes':'', (v)=>{ state.consent = (v==='yes'); render(); }),
+        err,
+        el('div',{className:'row'},
+          el('button',{className:'btn secondary',onclick:()=>{state.step=1;render();}}, 'Back'),
+          el('button',{className:'btn',onclick:()=>{
+            if (!state.consent) return showErr(err,'You need to agree to SMS to continue.');
+            state.step=3; render();
+          }}, 'Continue')
+        )
+      );
+    }
+
+    if (state.step === 3) {
+      const err = Err();
+      card.append(
+        el('label',{}, 'Have you ever created an Acorns account?'),
+        Seg([
+          {label:'No', value:'no'},
+          {label:'Not sure', value:'unsure'},
+          {label:'Yes', value:'yes'}
+        ], state.status, (v)=>{ state.status = v; render(); }),
+        el('div',{className:'helper'},
+          state.status==='yes' ? 'Thanks! This offer is for new users only.' :
+          state.status==='unsure' ? 'Eligibility depends on being truly new to Acorns.' : ''
+        ),
+        err,
+        el('div',{className:'row'},
+          el('button',{className:'btn secondary',onclick:()=>{state.step=2;render();}}, 'Back'),
+          el('button',{className:'btn',onclick:()=>{
+            if (!state.status) return showErr(err,'Please select an option.');
+            if (state.status==='yes') return showErr(err,'This offer is for new users only.');
+            state.step=4; render();
+          }}, 'Continue')
+        )
+      );
+    }
+
+    if (state.step === 4) {
+      const err = Err();
+      card.append(
+        el('label',{}, 'How should we pay you?'),
+        Seg([
+          {label:'Venmo', value:'venmo'},
+          {label:'Zelle', value:'zelle'}
+        ], state.payout, (v)=>{ state.payout = v; render(); }),
+      );
+      if (state.payout==='venmo') {
+        card.append(
+          el('label',{}, 'Your Venmo @handle'),
+          el('input',{className:'input',placeholder:'@yourhandle',value:state.handle,oninput:e=>state.handle=e.target.value})
+        );
+      }
+      if (state.payout==='zelle') {
+        card.append(
+          el('label',{}, 'Is your Zelle the same as your phone number?'),
+          Seg([
+            {label:'Yes', value:'yes'},
+            {label:'No', value:'no'}
+          ], state.zelleSame, (v)=>{ state.zelleSame=v; render(); }),
+        );
+        if (state.zelleSame==='no') {
+          card.append(
+            el('label',{}, 'Zelle email or phone'),
+            el('input',{className:'input',placeholder:'email or phone',value:state.zelleAlt,oninput:e=>state.zelleAlt=e.target.value})
+          );
+        }
+      }
+      card.append(
+        el('div',{className:'notice fade-enter'},
+          el('ul',{className:'clean'},
+            el('li',{},'Reply READY to get your unique link.'),
+            el('li',{},'Sign up NEW and deposit $5.'),
+            el('li',{},'Reply DONE and send a screenshot here.')
+          )
+        ),
+        err,
+        el('div',{className:'row'},
+          el('button',{className:'btn secondary',onclick:()=>{state.step=3;render();}}, 'Back'),
+          el('button',{className:'btn',onclick:()=>{
+            if (!state.payout) return showErr(err,'Pick Venmo or Zelle.');
+            if (state.payout==='venmo' && !/^@?\w{3,30}$/.test(state.handle||'')) return showErr(err,'Enter a valid Venmo handle.');
+            if (state.payout==='zelle' && state.zelleSame==='no' && !state.zelleAlt) return showErr(err,'Enter your Zelle email/phone.');
+            state.step=5; render();
+          }}, 'Continue')
+        )
+      );
+    }
+
+    if (state.step === 5) {
+      const err = Err();
+      const payload = () => ({
+        phone: e164(state.phone),
+        status: state.status,
+        payout: state.payout,
+        handle: state.payout==='venmo' ? (state.handle.startsWith('@')?state.handle:`@${state.handle}`) : null,
+        zelle: state.payout==='zelle' ? (state.zelleSame==='yes' ? 'same' : state.zelleAlt) : null,
+        consent: state.consent === true,
+        honeypot: ""
+      });
+      card.append(
+        el('h2',{className:'h'}, 'All set—watch your phone'),
+        el('p',{className:'p'}, 'We’ll text you with next steps. Reply READY for your link.'),
+        err,
+        el('div',{className:'row'},
+          el('button',{className:'btn secondary',onclick:()=>{state.step=4;render();}}, 'Back'),
+          el('button',{className:'btn',onclick:async()=>{
+            try{
+              const res = await fetch('/api/intake',{ method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload())});
+              const j = await res.json();
+              if(!res.ok) throw new Error(j.error||'Something went wrong.');
+              window.location.href='/thanks.html';
+            }catch(e){ showErr(err,e.message); }
+          }}, 'Submit')
+        )
+      );
+    }
+
+    $app.append(card);
+  };
   render();
 })();

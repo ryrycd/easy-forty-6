@@ -1,16 +1,19 @@
-import { json } from '../../../lib/validation.js';
-import { requireAdmin } from './_common.js';
+import { json, CORS } from '../../../lib/validation.js';
+import { requireAdmin } from './_auth.js';
 
-export async function onRequestPost({ request, env }){
+export async function onRequestOptions(){ return new Response(null,{status:204, headers:CORS}); }
+export async function onRequestPost(context){
   try{
-    requireAdmin(request, env);
-    const b = await request.json().catch(()=>({}));
-    const url = String(b.url||'');
-    const cap = Math.max(1, Number(b.cap||50));
-    const weekly = Math.max(0, Number(b.weekly_target||0));
-    await env.DB.prepare('INSERT INTO links(url,cap,weekly_target,position,active) VALUES (?,?,?,?,1)')
-      .bind(url, cap, weekly, (await env.DB.prepare('SELECT COALESCE(MAX(position),0)+1 AS p FROM links').first()).p).run();
+    requireAdmin(context.request, context.env);
+    const body = await context.request.json();
+    const url = String(body.url||'').trim();
+    const cap = Math.max(1, Number(body.cap||50));
+    const weekly_target = Math.max(0, Number(body.weekly_target||0));
+    const valid_until = body.valid_until || null;
+    if (!url) return json({ error:'url required' }, 400);
+    const pos = (await context.env.DB.prepare('SELECT COALESCE(MAX(position),-1) as p FROM links').first()).p + 1;
+    await context.env.DB.prepare('INSERT INTO links(url,cap,position,weekly_target,valid_until) VALUES (?,?,?,?,?)')
+      .bind(url, cap, pos, weekly_target, valid_until).run();
     return json({ ok:true });
-  }catch(e){ return json({ error:e.message }, 401); }
+  }catch(e){ return json({ error: e.message }, 401); }
 }
-export { onRequestOptions } from './_common.js';

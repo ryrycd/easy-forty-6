@@ -2,15 +2,11 @@ import { json, CORS } from '../../../lib/validation.js';
 import { requireAdmin } from './_auth.js';
 
 export async function onRequestOptions(){ return new Response(null,{status:204, headers:CORS}); }
-export async function onRequestPost(context){
+export async function onRequestGet(context){
   try{
     requireAdmin(context.request, context.env);
-    const body = await context.request.json();
-    const ids = Array.isArray(body.ids)? body.ids : [];
     const DB = context.env.DB;
-    for (let i=0;i<ids.length;i++){
-      await DB.prepare('UPDATE links SET position=? WHERE id=?').bind(i, ids[i]).run();
-    }
-    return json({ ok:true });
+    const { results } = await DB.prepare('SELECT * FROM links ORDER BY position ASC, id ASC').all();
+    return json({ links: results || [] });
   }catch(e){ return json({ error: e.message }, 401); }
 }

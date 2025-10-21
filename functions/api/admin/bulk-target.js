@@ -5,12 +5,8 @@ export async function onRequestOptions(){ return new Response(null,{status:204, 
 export async function onRequestPost(context){
   try{
     requireAdmin(context.request, context.env);
-    const body = await context.request.json();
-    const ids = Array.isArray(body.ids)? body.ids : [];
-    const DB = context.env.DB;
-    for (let i=0;i<ids.length;i++){
-      await DB.prepare('UPDATE links SET position=? WHERE id=?').bind(i, ids[i]).run();
-    }
+    const { weekly_target=0 } = await context.request.json();
+    await context.env.DB.prepare('UPDATE links SET weekly_target=?').bind(Math.max(0, Number(weekly_target||0))).run();
     return json({ ok:true });
   }catch(e){ return json({ error: e.message }, 401); }
 }
