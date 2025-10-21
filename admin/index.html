@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Admin — Easy Forty</title>
+  <link rel="stylesheet" href="/assets/styles.css">
+  <script defer src="/admin/admin.js"></script>
+</head>
+<body>
+  <main id="app">
+    <div class="card">
+      <h1 class="h">Admin Panel</h1>
+      <div class="p">Paste your admin key to manage links, freeze signups, and export.</div>
+      <label>Admin Key<input id="adminkey" class="input" placeholder="Paste ADMIN_KEY"></label>
+      <div class="row">
+        <button id="save" class="btn">Save</button>
+        <button id="freeze" class="btn secondary">Toggle Freeze</button>
+        <button id="export" class="btn secondary">Export CSV</button>
+        <button id="reset" class="btn secondary">Reset Counts</button>
+      </div>
+      <hr>
+      <h3 class="h">Links</h3>
+      <div id="links"></div>
+      <div class="row">
+        <input id="newurl" class="input" placeholder="Referral URL">
+        <input id="newcap" class="input" placeholder="Cap (uses)" type="number" min="1" value="50">
+        <button id="add" class="btn">Add Link</button>
+      </div>
+      <div id="msg" class="success"></div>
+      <div id="err" class="error"></div>
+    </div>
+  </main>
+</body>
+</html>
